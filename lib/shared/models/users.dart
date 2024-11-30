@@ -49,6 +49,9 @@ class User {
   /// 最後更新時間
   final DateTime updatedAt;
 
+  /// 用戶角色，例如: admin, user, manager 等
+  final String role;
+
   User({
     this.id,
     required this.username,
@@ -66,6 +69,7 @@ class User {
     this.isActive = true,
     DateTime? createdAt,
     DateTime? updatedAt,
+    this.role = 'user', // 預設角色為一般用戶
   })  : this.notificationSettings = notificationSettings ??
             {
               'email': true, // 是否接收電子郵件通知
@@ -100,6 +104,7 @@ class User {
       isActive: map['is_active'] == 1,
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: DateTime.parse(map['updated_at']),
+      role: map['role'] ?? 'user',
     );
   }
 
@@ -122,6 +127,7 @@ class User {
       'is_active': isActive ? 1 : 0,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'role': role,
     };
   }
 
@@ -143,6 +149,7 @@ class User {
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? role,
   }) {
     return User(
       id: id ?? this.id,
@@ -161,6 +168,7 @@ class User {
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      role: role ?? this.role,
     );
   }
 }
