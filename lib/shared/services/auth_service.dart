@@ -39,6 +39,10 @@ class AuthService {
         throw '密碼驗證失敗';
       }
 
+      if (!user.isActive) {
+        throw '帳號已被停權,請聯絡管理人員謝謝！';
+      }
+
       await _db
           .query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
