@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:task_management/features/auth/widgets/bezierContainer.dart';
 import 'package:task_management/features/auth/screens/register_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_management/features/auth/states/login_state.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   LoginPage({Key? key, this.title}) : super(key: key);
 
   final String? title;
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _backButton() {
     return InkWell(
       onTap: () {
@@ -49,6 +51,13 @@ class _LoginPageState extends State<LoginPage> {
           ),
           TextField(
               obscureText: isPassword,
+              onChanged: (value) {
+                if (isPassword) {
+                  ref.read(loginFormProvider.notifier).updatedPassword(value);
+                } else {
+                  ref.read(loginFormProvider.notifier).updatedEmail(value);
+                }
+              },
               decoration: InputDecoration(
                   border: InputBorder.none,
                   fillColor: Color(0xfff3f3f4),
@@ -59,31 +68,39 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _submitButton() {
+    // 觀察表單的狀態
+    final formState = ref.watch(loginFormProvider);
+
     return Container(
-      width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.symmetric(vertical: 15),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(5)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-                color: Colors.grey.shade200,
-                offset: Offset(2, 4),
-                blurRadius: 5,
-                spreadRadius: 2)
-          ],
-          gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                Color.fromARGB(255, 68, 68, 68),
-                Color.fromARGB(255, 0, 0, 0)
-              ])),
-      child: Text(
-        '登入',
-        style: TextStyle(fontSize: 20, color: Colors.white),
-      ),
-    );
+        width: MediaQuery.of(context).size.width,
+        padding: EdgeInsets.symmetric(vertical: 15),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(5)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                  color: Colors.grey.shade200,
+                  offset: Offset(2, 4),
+                  blurRadius: 5,
+                  spreadRadius: 2)
+            ],
+            gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Color.fromARGB(255, 68, 68, 68),
+                  Color.fromARGB(255, 0, 0, 0)
+                ])),
+        child: InkWell(
+          onTap: () {
+            print('email${formState.email}');
+            print('password${formState.password}');
+          },
+          child: Text(
+            '登入',
+            style: TextStyle(fontSize: 20, color: Colors.white),
+          ),
+        ));
   }
 
   Widget _divider() {
