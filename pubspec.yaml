@@ -53,9 +53,9 @@ dev_dependencies:
   jwt_decoder: ^2.0.1         # jwt
   dart_jsonwebtoken: ^2.14.1  # jwt
   email_validator: ^3.0.0     # email 驗證
-  logging: ^1.2.0             # log 套件
   google_fonts: ^6.2.1        # google 字體
   flutter_riverpod: ^2.6.1    # 依賴注入
+  logger: ^2.5.0              # log 套件
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

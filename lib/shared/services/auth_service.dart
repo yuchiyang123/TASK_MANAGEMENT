@@ -8,12 +8,12 @@ import 'package:task_management/core/middleware/auth_middleware.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:task_management/core/config/env.dart';
 import 'package:email_validator/email_validator.dart';
-import 'package:logging/logging.dart';
+import 'package:logger/logger.dart';
 
 class AuthService {
   late final MySqlConnection _db;
 
-  final _logger = Logger('AuthService');
+  final logger = Logger();
 
   /// 從config 取得連線資料
   Future<void> connect() async {
@@ -61,7 +61,7 @@ class AuthService {
         'user': user.toMap()..remove('password_hash'),
       };
     } catch (e) {
-      _logger.warning('登入失敗', e);
+      logger.w('登入失敗, $e');
       rethrow;
     }
   }
@@ -71,7 +71,7 @@ class AuthService {
     try {
       return AuthMiddleware().refreshAccessToken(refreshToken);
     } catch (e) {
-      _logger.warning('刷新token失敗', e);
+      logger.w('刷新token失敗, $e');
       throw '刷新token失敗';
     }
   }
@@ -81,7 +81,7 @@ class AuthService {
     try {
       return BCrypt.checkpw(password, passwordHash);
     } catch (e) {
-      _logger.warning('密碼驗證失敗', e);
+      logger.w('密碼驗證失敗, $e');
       return false;
     }
   }
@@ -164,7 +164,7 @@ class AuthService {
     } catch (e) {
       // 註冊失敗 rollback
       await _db.query('ROLLBACK');
-      _logger.warning(e);
+      logger.w(e);
       throw '註冊失敗: $e';
     }
   }
@@ -174,7 +174,7 @@ class AuthService {
     try {
       return EmailValidator.validate(email);
     } catch (e) {
-      _logger.warning(e);
+      logger.w(e);
       throw 'Email格式不正確，請確認格式是否正確，例：example@mail.com';
     }
   }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_management/features/auth/states/auth_state.dart';
+import 'package:task_management/features/auth/states/login_state.dart';
 import 'package:task_management/features/auth/widgets/bezierContainer.dart';
 import 'package:task_management/features/auth/screens/register_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_management/features/auth/states/login_state.dart';
+import 'package:task_management/shared/services/auth_service.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  LoginPage({Key? key, this.title}) : super(key: key);
+  const LoginPage({super.key, this.title});
 
   final String? title;
 
@@ -15,20 +17,22 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  final logger = Logger();
+
   Widget _backButton() {
     return InkWell(
       onTap: () {
         Navigator.pop(context);
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           children: <Widget>[
             Container(
-              padding: EdgeInsets.only(left: 0, top: 10, bottom: 10),
-              child: Icon(Icons.keyboard_arrow_left, color: Colors.black),
+              padding: const EdgeInsets.only(left: 0, top: 10, bottom: 10),
+              child: const Icon(Icons.keyboard_arrow_left, color: Colors.black),
             ),
-            Text('返回',
+            const Text('返回',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500))
           ],
         ),
@@ -38,15 +42,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Widget _entryField(String title, {bool isPassword = false}) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           TextField(
@@ -58,7 +62,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ref.read(loginFormProvider.notifier).updatedEmail(value);
                 }
               },
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   border: InputBorder.none,
                   fillColor: Color(0xfff3f3f4),
                   filled: true))
@@ -73,18 +77,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Container(
         width: MediaQuery.of(context).size.width,
-        padding: EdgeInsets.symmetric(vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 15),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(5)),
+            borderRadius: const BorderRadius.all(Radius.circular(5)),
             boxShadow: <BoxShadow>[
               BoxShadow(
                   color: Colors.grey.shade200,
-                  offset: Offset(2, 4),
+                  offset: const Offset(2, 4),
                   blurRadius: 5,
                   spreadRadius: 2)
             ],
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
@@ -92,11 +96,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Color.fromARGB(255, 0, 0, 0)
                 ])),
         child: InkWell(
-          onTap: () {
-            print('email${formState.email}');
-            print('password${formState.password}');
+          onTap: () async {
+            final authService = await ref.read(authServiceProvider.future);
+            logger.i(
+                'user loginInfo: email：${formState.email} | password：${formState.password}');
+            try {
+              final results =
+                  await authService.login(formState.email, formState.password);
+
+              final accessToken = results['accessToken'];
+              final refreshToken = results['refreshToken'];
+              final userData = results['user'];
+            } catch (e) {
+              logger.w('登入錯誤：$e');
+            }
           },
-          child: Text(
+          child: const Text(
             '登入',
             style: TextStyle(fontSize: 20, color: Colors.white),
           ),
@@ -105,8 +120,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Widget _divider() {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: Row(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: const Row(
         children: <Widget>[
           SizedBox(
             width: 20,
@@ -139,8 +154,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _facebookButton() {
     return Container(
       height: 50,
-      margin: EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
+      margin: const EdgeInsets.symmetric(vertical: 20),
+      decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
       child: Row(
@@ -148,14 +163,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Expanded(
             flex: 1,
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xff1959a9),
                 borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(5),
                     topLeft: Radius.circular(5)),
               ),
               alignment: Alignment.center,
-              child: Text('f',
+              child: const Text('f',
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 25,
@@ -165,14 +180,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Expanded(
             flex: 5,
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xff2872ba),
                 borderRadius: BorderRadius.only(
                     bottomRight: Radius.circular(5),
                     topRight: Radius.circular(5)),
               ),
               alignment: Alignment.center,
-              child: Text('Log in with Facebook',
+              child: const Text('Log in with Facebook',
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -191,10 +206,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             context, MaterialPageRoute(builder: (context) => RegisterPage()));
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 20),
-        padding: EdgeInsets.all(15),
+        margin: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.all(15),
         alignment: Alignment.bottomCenter,
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
@@ -220,7 +235,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _title() {
     return RichText(
       textAlign: TextAlign.center,
-      text: TextSpan(
+      text: const TextSpan(
           text: 'd',
           style: TextStyle(
               fontSize: 30,
@@ -252,16 +267,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
-        body: Container(
+        body: SizedBox(
       height: height,
       child: Stack(
         children: <Widget>[
           Positioned(
               top: -height * .15,
               right: -MediaQuery.of(context).size.width * .4,
-              child: BezierContainer()),
+              child: const BezierContainer()),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -269,14 +284,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 children: <Widget>[
                   SizedBox(height: height * .2),
                   _title(),
-                  SizedBox(height: 50),
+                  const SizedBox(height: 50),
                   _emailPasswordWidget(),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   _submitButton(),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     alignment: Alignment.centerRight,
-                    child: Text('忘記密碼 ?',
+                    child: const Text('忘記密碼 ?',
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w500)),
                   ),
