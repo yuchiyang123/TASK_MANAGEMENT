@@ -5,6 +5,7 @@ import 'package:bcrypt/bcrypt.dart';
 import 'package:task_management/shared/models/users.dart';
 import 'package:task_management/core/config/database_config.dart';
 import 'package:task_management/core/middleware/auth_middleware.dart';
+import 'package:task_management/features/auth/Exception/auth_exception.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:task_management/core/config/env.dart';
 import 'package:email_validator/email_validator.dart';
@@ -30,17 +31,26 @@ class AuthService {
           await _db.query('SELECT * FROM users WHERE email = ?', [email]);
 
       if (results.isEmpty) {
-        throw '用戶不存在';
+        throw const AuthException(
+          message: '用戶不存在',
+          code: AuthErrorCodes.UNDERFOUND_USER,
+        );
       }
 
       final user = User.fromMap(results.first.fields);
 
       if (!await verifyPassword(password, user.passwordHash)) {
-        throw '密碼驗證失敗';
+        throw const AuthException(
+          message: '密碼驗證失敗',
+          code: AuthErrorCodes.PASSWORD_VERIFIY_FAILED,
+        );
       }
 
       if (!user.isActive) {
-        throw '帳號已被停權,請聯絡管理人員謝謝！';
+        throw const AuthException(
+          message: '帳號已被停權,請聯絡管理人員謝謝！',
+          code: AuthErrorCodes.ACCOUNT_DISABLED,
+        );
       }
 
       await _db
@@ -95,11 +105,17 @@ class AuthService {
       );
 
       if (checkUserName.isNotEmpty) {
-        throw '用戶名重複,請重新輸入';
+        throw const AuthException(
+          message: '用戶名重複,請重新輸入',
+          code: AuthErrorCodes.USERNAME_DUPLICATE,
+        );
       }
 
       if (!emailverify(user.email)) {
-        throw 'Email格式錯誤';
+        throw const AuthException(
+          message: 'Email格式錯誤',
+          code: AuthErrorCodes.INVALID_EMAIL,
+        );
       }
 
       final checkEmail = await _db.query(
@@ -108,11 +124,17 @@ class AuthService {
       );
 
       if (checkEmail.isNotEmpty) {
-        throw 'Email重複,請重新輸入';
+        throw const AuthException(
+          message: 'Email重複,請重新輸入',
+          code: AuthErrorCodes.EMAIL_DUPLICATE,
+        );
       }
 
-      if (!validatePassword(user.passwordHash)) {
-        throw '密碼至少8位,包含大小寫字母、數字';
+      if (!validatePassword(plainPassword)) {
+        throw const AuthException(
+          message: '密碼至少8位,包含大小寫字母、數字',
+          code: AuthErrorCodes.INVALID_PASSWORD,
+        );
       }
 
       // 生成 hash
@@ -121,9 +143,10 @@ class AuthService {
 
       // 建立新的 user 物件，包含 hash 後的密碼
       final userToSave = user.copyWith(
-          passwordHash: passwordHash,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now());
+        passwordHash: passwordHash,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
       final result = await _db.query('''
       INSERT INTO users (
@@ -167,6 +190,11 @@ class AuthService {
       logger.w(e);
       throw '註冊失敗: $e';
     }
+  }
+
+  /// 驗證註冊密碼是否一樣
+  bool validatePasswordMatch(String password, String confirmPassword) {
+    return password == confirmPassword;
   }
 
   /// 驗證 email(同步)

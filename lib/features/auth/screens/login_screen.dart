@@ -6,6 +6,8 @@ import 'package:task_management/features/auth/states/login_state.dart';
 import 'package:task_management/features/auth/widgets/bezierContainer.dart';
 import 'package:task_management/features/auth/screens/register_screen.dart';
 import 'package:task_management/shared/services/auth_service.dart';
+import 'package:task_management/shared/widgets/error_dialog.dart';
+import 'package:task_management/features/auth/Exception/auth_exception.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key, this.title});
@@ -107,6 +109,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               final accessToken = results['accessToken'];
               final refreshToken = results['refreshToken'];
               final userData = results['user'];
+            } on AuthException catch (e) {
+              // 確保他生命週期過了狀態不會一直存在
+              if (!mounted) return;
+              // 處理特定錯誤
+              switch (e.code) {
+                case AuthErrorCodes.USER_NOT_FOUND:
+                  showErrorDialog(context, '找不到用戶', '請再輸入一次');
+                  break;
+                case AuthErrorCodes.PASSWORD_VERIFIY_FAILED:
+                  showErrorDialog(context, '帳號密碼錯誤', '請檢查帳號密碼是否正確，再輸入一次');
+                  break;
+                default:
+                  showErrorDialog(context, '登入失敗', e.message);
+              }
             } catch (e) {
               logger.w('登入錯誤：$e');
             }

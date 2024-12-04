@@ -1,32 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_management/features/auth/states/auth_state.dart';
+import 'package:task_management/features/auth/states/register_state.dart';
 import 'package:task_management/features/auth/widgets/bezierContainer.dart';
 import 'package:task_management/features/auth/screens/login_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:task_management/shared/models/users.dart';
+import 'package:task_management/features/auth/Exception/auth_exception.dart';
+import 'package:task_management/shared/widgets/error_dialog.dart';
 
-class RegisterPage extends StatefulWidget {
-  RegisterPage({Key? key, this.title}) : super(key: key);
+class RegisterPage extends ConsumerStatefulWidget {
+  const RegisterPage({super.key, this.title});
 
   final String? title;
 
   @override
-  _RegisterPageState createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
+  final logger = Logger();
+
   Widget _backButton() {
     return InkWell(
       onTap: () {
         Navigator.pop(context);
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           children: <Widget>[
             Container(
-              padding: EdgeInsets.only(left: 0, top: 10, bottom: 10),
-              child: Icon(Icons.keyboard_arrow_left, color: Colors.black),
+              padding: const EdgeInsets.only(left: 0, top: 10, bottom: 10),
+              child: const Icon(Icons.keyboard_arrow_left, color: Colors.black),
             ),
-            Text('Back',
+            const Text('Back',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500))
           ],
         ),
@@ -36,20 +44,20 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _entryField(String title, {bool isPassword = false}) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           TextField(
               obscureText: isPassword,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   border: InputBorder.none,
                   fillColor: Color(0xfff3f3f4),
                   filled: true))
@@ -59,41 +67,83 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _submitButton() {
+    // 監聽表單狀態
+    final formState = ref.watch(RegisterFormProvider);
+
     return Container(
-      width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.symmetric(vertical: 15),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(5)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-                color: Colors.grey.shade200,
-                offset: Offset(2, 4),
-                blurRadius: 5,
-                spreadRadius: 2)
-          ],
-          gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [Color(0xfffbb448), Color(0xfff7892b)])),
-      child: Text(
-        'Register Now',
-        style: TextStyle(fontSize: 20, color: Colors.white),
-      ),
-    );
+        width: MediaQuery.of(context).size.width,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(5)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                  color: Colors.grey.shade200,
+                  offset: const Offset(2, 4),
+                  blurRadius: 5,
+                  spreadRadius: 2)
+            ],
+            gradient: const LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Color(0xfffbb448), Color(0xfff7892b)])),
+        child: InkWell(
+          onTap: () async {
+            try {
+              final authService = await ref.read(authServiceProvider.future);
+              if (!authService.validatePasswordMatch(
+                  formState.password, formState.confirmPassword)) {
+                logger.w(
+                    '密碼：${formState.password}｜重複密碼：${formState.confirmPassword}');
+                if (!mounted) return;
+                showErrorDialog(context, '密碼不一致', '請確認密碼是否一致');
+              }
+              final newUser = User(
+                username: formState.username,
+                email: formState.email,
+                passwordHash: formState.password,
+              );
+              authService.register(newUser, formState.password);
+            } on AuthException catch (e) {
+              // 確保他生命週期過了狀態不會一直存在
+              if (!mounted) return;
+              // 處理特定錯誤
+              switch (e.code) {
+                case AuthErrorCodes.USERNAME_DUPLICATE:
+                  showErrorDialog(context, '用戶名已被使用', '請選擇其他用戶名');
+                  break;
+                case AuthErrorCodes.EMAIL_DUPLICATE:
+                  showErrorDialog(context, 'Email已被註冊', '請使用其他Email地址');
+                  break;
+                case AuthErrorCodes.INVALID_PASSWORD:
+                  showErrorDialog(context, '密碼格式錯誤', e.message);
+                  break;
+                default:
+                  showErrorDialog(context, '註冊失敗', e.message);
+              }
+            } catch (e) {
+              logger.w('註冊失敗 錯誤碼：$e');
+              throw '註冊失敗';
+            }
+          },
+          child: const Text(
+            '註冊',
+            style: TextStyle(fontSize: 20, color: Colors.white),
+          ),
+        ));
   }
 
   Widget _loginAccountLabel() {
     return InkWell(
       onTap: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => LoginPage()));
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginPage()));
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 20),
-        padding: EdgeInsets.all(15),
+        margin: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.all(15),
         alignment: Alignment.bottomCenter,
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
@@ -119,7 +169,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _title() {
     return RichText(
       textAlign: TextAlign.center,
-      text: TextSpan(
+      text: const TextSpan(
           text: 'd',
           style: TextStyle(
               fontSize: 30,
@@ -152,17 +202,17 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
-      body: Container(
+      body: SizedBox(
         height: height,
         child: Stack(
           children: <Widget>[
             Positioned(
               top: -MediaQuery.of(context).size.height * .15,
               right: -MediaQuery.of(context).size.width * .4,
-              child: BezierContainer(),
+              child: const BezierContainer(),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -170,11 +220,11 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: <Widget>[
                     SizedBox(height: height * .2),
                     _title(),
-                    SizedBox(
+                    const SizedBox(
                       height: 50,
                     ),
                     _emailPasswordWidget(),
-                    SizedBox(
+                    const SizedBox(
                       height: 20,
                     ),
                     _submitButton(),
