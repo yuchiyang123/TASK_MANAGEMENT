@@ -49,7 +49,7 @@ class User {
   /// 最後更新時間
   final DateTime updatedAt;
 
-  /// 用戶角色，例如: admin, user, manager 等
+  /// 用戶角色，例如: admin, user, manager 等等
   final String role;
 
   User({
