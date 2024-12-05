@@ -10,10 +10,13 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:task_management/core/config/env.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:task_management/core/middleware/auth_middleware.dart';
 
 class AuthService {
   late final MySqlConnection _db;
 
+  // logger 偵錯訊息初始化
   final logger = Logger();
 
   /// 從config 取得連線資料
@@ -22,7 +25,10 @@ class AuthService {
   }
 
   /// 獲取連線db
-  AuthService(this._db);
+  AuthService(this._db, this._pref);
+
+  // SharedPreferences 初始化
+  final SharedPreferences _pref;
 
   /// 登入邏輯判斷
   Future<Map<String, dynamic>> login(String email, String password) async {
@@ -197,7 +203,7 @@ class AuthService {
     return password == confirmPassword;
   }
 
-  /// 驗證 email(同步)
+  /// 驗證 email (同步)
   bool emailverify(String email) {
     try {
       return EmailValidator.validate(email);
@@ -213,5 +219,37 @@ class AuthService {
     final passwordRegExp =
         RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$');
     return passwordRegExp.hasMatch(password);
+  }
+
+  /// 儲存 AccessToken 和 refreshToken
+  Future<void> setJWToken(String accessToken, String refreshToken) async {
+    await _pref.setString('ACCESS_TOKEN_KEY', accessToken);
+    await _pref.setString('REFRESH_TOKEN_KEY', refreshToken);
+  }
+
+  /// 移除 AccessToken 和 refreshToken
+  Future<void> clearJWToken() async {
+    await _pref.remove('ACCESS_TOKEN_KEY');
+    await _pref.remove('REFRESH_TOKEN_KEY');
+  }
+
+  /// 是否有登入？
+  bool isAuthenticated() {
+    final accessToken = _pref.getString('ACCESS_TOKEN_KEY');
+    final refreshToken = _pref.getString('REFRESH_TOKEN_KEY');
+
+    if (accessToken == null && refreshToken == null) return false;
+
+    if (AuthMiddleware().verifyJWT(accessToken!)) {
+      return true;
+    }
+    try {
+      final newAccessToken = AuthMiddleware().refreshAccessToken(refreshToken!);
+      _pref.setString('ACCESS_TOKEN_KEY', newAccessToken);
+      return true;
+    } catch (e) {
+      clearJWToken();
+      return false;
+    }
   }
 }

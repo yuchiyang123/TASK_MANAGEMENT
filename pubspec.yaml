@@ -47,7 +47,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
   sqflite: ^2.4.1 
-  shared_preferences: ^2.3.3 
+  shared_preferences: ^2.3.3  # 儲存小型資料
   mysql1: ^0.20.0             # mysql
   bcrypt: ^1.1.3              # Hash 密碼加解密
   jwt_decoder: ^2.0.1         # jwt

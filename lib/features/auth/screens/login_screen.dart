@@ -109,6 +109,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               final accessToken = results['accessToken'];
               final refreshToken = results['refreshToken'];
               final userData = results['user'];
+
+              await authService.setJWToken(accessToken, refreshToken);
             } on AuthException catch (e) {
               // 確保他生命週期過了狀態不會一直存在
               if (!mounted) return;
