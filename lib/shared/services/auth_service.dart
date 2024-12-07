@@ -72,9 +72,8 @@ class AuthService {
       final refreshToken = AuthMiddleware().generateRefreshToken(payload);
 
       return {
-        'accessToekn': accessToken,
+        'accessToken': accessToken,
         'refreshToken': refreshToken,
-        'user': user.toMap()..remove('password_hash'),
       };
     } catch (e) {
       logger.w('登入失敗, $e');
@@ -222,9 +221,9 @@ class AuthService {
   }
 
   /// 儲存 AccessToken 和 refreshToken
-  Future<void> setJWToken(String accessToken, String refreshToken) async {
-    await _pref.setString('ACCESS_TOKEN_KEY', accessToken);
-    await _pref.setString('REFRESH_TOKEN_KEY', refreshToken);
+  Future<void> setJWToken(String? accessToken, String? refreshToken) async {
+    await _pref.setString('ACCESS_TOKEN_KEY', accessToken as String);
+    await _pref.setString('REFRESH_TOKEN_KEY', refreshToken as String);
   }
 
   /// 移除 AccessToken 和 refreshToken

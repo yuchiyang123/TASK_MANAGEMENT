@@ -34,7 +34,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               padding: const EdgeInsets.only(left: 0, top: 10, bottom: 10),
               child: const Icon(Icons.keyboard_arrow_left, color: Colors.black),
             ),
-            const Text('Back',
+            const Text('返回',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500))
           ],
         ),
@@ -57,6 +57,23 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           ),
           TextField(
               obscureText: isPassword,
+              onChanged: (value) {
+                if (title == '使用者姓名') {
+                  ref
+                      .read(RegisterFormProvider.notifier)
+                      .updatedUserName(value);
+                } else if (title == 'Email') {
+                  ref.read(RegisterFormProvider.notifier).updatedEmail(value);
+                } else if (title == '密碼') {
+                  ref
+                      .read(RegisterFormProvider.notifier)
+                      .updatedPassword(value);
+                } else {
+                  ref
+                      .read(RegisterFormProvider.notifier)
+                      .updatedConfirmPassword(value);
+                }
+              },
               decoration: const InputDecoration(
                   border: InputBorder.none,
                   fillColor: Color(0xfff3f3f4),
@@ -147,14 +164,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Already have an account ?',
+              '您已經擁有帳號了嗎 ?',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
             SizedBox(
               width: 10,
             ),
             Text(
-              'Login',
+              '登入',
               style: TextStyle(
                   color: Color(0xfff79c4f),
                   fontSize: 13,
@@ -191,9 +208,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Widget _emailPasswordWidget() {
     return Column(
       children: <Widget>[
-        _entryField("Username"),
-        _entryField("Email id"),
-        _entryField("Password", isPassword: true),
+        _entryField("使用者姓名"),
+        _entryField("Email"),
+        _entryField("密碼", isPassword: true),
+        _entryField("再輸入一次密碼", isPassword: true),
       ],
     );
   }

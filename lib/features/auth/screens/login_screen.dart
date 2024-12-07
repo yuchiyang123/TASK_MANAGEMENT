@@ -5,9 +5,9 @@ import 'package:task_management/features/auth/states/auth_state.dart';
 import 'package:task_management/features/auth/states/login_state.dart';
 import 'package:task_management/features/auth/widgets/bezierContainer.dart';
 import 'package:task_management/features/auth/screens/register_screen.dart';
-import 'package:task_management/shared/services/auth_service.dart';
 import 'package:task_management/shared/widgets/error_dialog.dart';
 import 'package:task_management/features/auth/Exception/auth_exception.dart';
+import 'package:task_management/shared/widgets/loading_animion.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key, this.title});
@@ -76,6 +76,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _submitButton() {
     // 觀察表單的狀態
     final formState = ref.watch(loginFormProvider);
+    final loadingController = ref.read(loadingProvider);
 
     return Container(
         width: MediaQuery.of(context).size.width,
@@ -99,31 +100,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ])),
         child: InkWell(
           onTap: () async {
+            // 顯示 loading
+            loadingController.show(context);
             final authService = await ref.read(authServiceProvider.future);
-            logger.i(
-                'user loginInfo: email：${formState.email} | password：${formState.password}');
+            logger.i('user loginInfo: email：${formState.email} |');
             try {
               final results =
                   await authService.login(formState.email, formState.password);
 
-              final accessToken = results['accessToken'];
-              final refreshToken = results['refreshToken'];
-              final userData = results['user'];
-
-              await authService.setJWToken(accessToken, refreshToken);
+              // 先關閉 loading，再處理結果
+              await loadingController.hide(context);
+              await handleLogin(
+                  mounted, results, authService, logger, loadingController);
             } on AuthException catch (e) {
               // 確保他生命週期過了狀態不會一直存在
               if (!mounted) return;
-              // 處理特定錯誤
-              switch (e.code) {
-                case AuthErrorCodes.USER_NOT_FOUND:
-                  showErrorDialog(context, '找不到用戶', '請再輸入一次');
-                  break;
-                case AuthErrorCodes.PASSWORD_VERIFIY_FAILED:
-                  showErrorDialog(context, '帳號密碼錯誤', '請檢查帳號密碼是否正確，再輸入一次');
-                  break;
-                default:
-                  showErrorDialog(context, '登入失敗', e.message);
+
+              // 確保 loading 先關閉
+              await loadingController.hide(context);
+
+              if (mounted) {
+                // 處理特定錯誤
+                switch (e.code) {
+                  case AuthErrorCodes.USER_NOT_FOUND:
+                    showErrorDialog(context, '找不到用戶', '請再輸入一次');
+                    break;
+                  case AuthErrorCodes.PASSWORD_VERIFIY_FAILED:
+                    showErrorDialog(context, '帳號密碼錯誤', '請檢查帳號密碼是否正確，再輸入一次');
+                    break;
+                  default:
+                    showErrorDialog(context, '登入失敗', e.message);
+                }
               }
             } catch (e) {
               logger.w('登入錯誤：$e');
@@ -220,8 +227,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _createAccountLabel() {
     return InkWell(
       onTap: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => RegisterPage()));
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const RegisterPage()));
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 20),
@@ -325,5 +332,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ],
       ),
     ));
+  }
+}
+
+Future<void> handleLogin(
+    context, results, authService, logger, loadingController) async {
+  try {
+    // 檢查登入結果
+    if (results.isEmpty) {
+      // 登入失敗處理
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('登入失敗，請檢查帳號密碼')),
+      );
+      return;
+    }
+
+    // 登入成功，處理 token
+    final accessToken = results['accessToken'];
+    final refreshToken = results['refreshToken'];
+
+    await authService.setJWToken(accessToken, refreshToken);
+    logger.t('登入成功');
+  } catch (error) {
+    // 錯誤處理
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('發生錯誤：${error.toString()}')),
+    );
+  } finally {
+    // 確保一定會關閉 loading
+    loadingController.hide(context);
   }
 }

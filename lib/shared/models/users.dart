@@ -96,14 +96,17 @@ class User {
       language: map['language'],
       theme: map['theme'],
       timeZone: map['time_zone'],
-      notificationSettings: json.decode(map['notification_settings']),
-      lastLogin:
-          map['last_login'] != null ? DateTime.parse(map['last_login']) : null,
-      lastSync:
-          map['last_sync'] != null ? DateTime.parse(map['last_sync']) : null,
+      notificationSettings:
+          json.decode(map['notification_settings'].toString()),
+      lastLogin: map['last_login'] != null
+          ? DateTime.parse(map['last_login'].toString())
+          : null,
+      lastSync: map['last_sync'] != null
+          ? DateTime.parse(map['last_sync'].toString())
+          : null,
       isActive: map['is_active'] == 1,
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt: DateTime.parse(map['updated_at']),
+      createdAt: DateTime.parse(map['created_at'].toString()),
+      updatedAt: DateTime.parse(map['updated_at'].toString()),
       role: map['role'] ?? 'user',
     );
   }
@@ -123,7 +126,7 @@ class User {
       'time_zone': timeZone,
       'notification_settings': json.encode(notificationSettings),
       'last_login': lastLogin?.toIso8601String(),
-      'last_sync': lastSync?.toIso8601String(),
+      'last_sync': DateTime.now().toIso8601String(),
       'is_active': isActive ? 1 : 0,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
