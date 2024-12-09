@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:task_management/core/config/env.dart';
-import 'package:task_management/features/auth/Exception/auth_exception.dart';
 import 'package:task_management/shared/widgets/error_dialog.dart';
 import 'package:logger/logger.dart';
 import 'package:task_management/core/constants/error_messages.dart';

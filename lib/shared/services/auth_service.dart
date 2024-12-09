@@ -1,17 +1,13 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:task_management/shared/models/users.dart';
 import 'package:task_management/core/config/database_config.dart';
 import 'package:task_management/core/middleware/auth_middleware.dart';
 import 'package:task_management/features/auth/Exception/auth_exception.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:task_management/core/config/env.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:task_management/core/middleware/auth_middleware.dart';
 
 class AuthService {
   late final MySqlConnection _db;

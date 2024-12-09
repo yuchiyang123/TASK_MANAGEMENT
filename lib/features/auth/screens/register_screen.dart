@@ -140,6 +140,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               }
             } catch (e) {
               logger.w('註冊失敗 錯誤碼：$e');
+              showErrorDialog(context, '註冊失敗', '請聯絡管理員');
               throw '註冊失敗';
             }
           },
@@ -246,7 +247,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       height: 20,
                     ),
                     _submitButton(),
-                    SizedBox(height: height * .14),
+                    const SizedBox(height: 1),
                     _loginAccountLabel(),
                   ],
                 ),

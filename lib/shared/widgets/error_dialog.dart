@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 void showErrorDialog(BuildContext context, String title, String message) {
   showDialog(
     context: context,
-    barrierDismissible: false,
-    barrierColor: Colors.transparent,
+    barrierDismissible: true,
+    barrierColor: Colors.black54, // 改變背景灰灰
     builder: (BuildContext context) {
       return Dialog(
         // 設置對話框形狀和邊距

@@ -102,9 +102,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           onTap: () async {
             // 顯示 loading
             loadingController.show(context);
-            final authService = await ref.read(authServiceProvider.future);
-            logger.i('user loginInfo: email：${formState.email} |');
             try {
+              final authService = await ref.read(authServiceProvider.future);
+              logger.i(
+                  'user loginInfo: email：${formState.email} | password${formState.password}');
               final results =
                   await authService.login(formState.email, formState.password);
 
@@ -133,6 +134,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 }
               }
             } catch (e) {
+              await loadingController.hide(context);
+              showErrorDialog(context, '糸統錯誤', '請聯絡管理人，謝謝！');
               logger.w('登入錯誤：$e');
             }
           },
