@@ -8,6 +8,7 @@ import 'package:task_management/features/auth/Exception/auth_exception.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:task_management/shared/widgets/error_dialog.dart';
 
 class AuthService {
   late final MySqlConnection _db;
@@ -17,7 +18,12 @@ class AuthService {
 
   /// 從config 取得連線資料
   Future<void> connect() async {
-    _db = await MySqlConnection.connect(DatabaseConfig.settings);
+    try {
+      _db = await MySqlConnection.connect(DatabaseConfig.settings);
+    } catch (e) {
+      logger.w('資料庫連線錯誤，錯誤碼：$e');
+      showDialogNC('連線錯誤', '請聯絡管理人員，謝謝');
+    }
   }
 
   /// 獲取連線db
@@ -100,6 +106,34 @@ class AuthService {
   /// 用戶註冊
   Future<User> register(User user, String plainPassword) async {
     try {
+      if (user.username.isEmpty) {
+        throw const AuthException(
+          message: '用戶名不得為空',
+          code: AuthErrorCodes.UNDERFOUND_USER,
+        );
+      }
+
+      if (user.email.isEmpty) {
+        throw const AuthException(
+          message: 'Eamil不得為空',
+          code: AuthErrorCodes.UNDERFOUND_USER,
+        );
+      }
+
+      if (plainPassword.isEmpty) {
+        throw const AuthException(
+          message: '密碼不得為空',
+          code: AuthErrorCodes.USERNAME_DUPLICATE,
+        );
+      }
+
+      if (!validatePassword(plainPassword)) {
+        throw const AuthException(
+          message: '密碼至少8位,包含大小寫字母、數字',
+          code: AuthErrorCodes.INVALID_PASSWORD,
+        );
+      }
+
       final checkUserName = await _db.query(
         'SELECT id FROM users WHERE username = ?',
         [user.username],
@@ -128,13 +162,6 @@ class AuthService {
         throw const AuthException(
           message: 'Email重複,請重新輸入',
           code: AuthErrorCodes.EMAIL_DUPLICATE,
-        );
-      }
-
-      if (!validatePassword(plainPassword)) {
-        throw const AuthException(
-          message: '密碼至少8位,包含大小寫字母、數字',
-          code: AuthErrorCodes.INVALID_PASSWORD,
         );
       }
 
@@ -189,7 +216,7 @@ class AuthService {
       // 註冊失敗 rollback
       await _db.query('ROLLBACK');
       logger.w(e);
-      throw '註冊失敗: $e';
+      rethrow;
     }
   }
 

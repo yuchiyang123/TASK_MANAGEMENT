@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_management/core/routes/app_route.dart';
 import 'package:task_management/features/auth/states/auth_state.dart';
 import 'package:task_management/features/auth/states/register_state.dart';
 import 'package:task_management/features/auth/widgets/bezierContainer.dart';
@@ -120,7 +121,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 email: formState.email,
                 passwordHash: formState.password,
               );
-              authService.register(newUser, formState.password);
+              await authService.register(newUser, formState.password);
             } on AuthException catch (e) {
               // 確保他生命週期過了狀態不會一直存在
               if (!mounted) return;
@@ -135,13 +136,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 case AuthErrorCodes.INVALID_PASSWORD:
                   showErrorDialog(context, '密碼格式錯誤', e.message);
                   break;
+                case AuthErrorCodes.UNDERFOUND_USER:
+                  showErrorDialog(context, '請輸入帳號密碼', e.message);
+                  break;
                 default:
                   showErrorDialog(context, '註冊失敗', e.message);
               }
             } catch (e) {
               logger.w('註冊失敗 錯誤碼：$e');
               showErrorDialog(context, '註冊失敗', '請聯絡管理員');
-              throw '註冊失敗';
             }
           },
           child: const Text(
@@ -153,10 +156,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   Widget _loginAccountLabel() {
     return InkWell(
-      onTap: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const LoginPage()));
-      },
+      onTap: () => context.pushToLogin(),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 20),
         padding: const EdgeInsets.all(15),

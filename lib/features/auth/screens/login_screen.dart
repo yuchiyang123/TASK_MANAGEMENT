@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_management/core/routes/app_route.dart';
 import 'package:task_management/features/auth/states/auth_state.dart';
 import 'package:task_management/features/auth/states/login_state.dart';
 import 'package:task_management/features/auth/widgets/bezierContainer.dart';
@@ -229,10 +230,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Widget _createAccountLabel() {
     return InkWell(
-      onTap: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const RegisterPage()));
-      },
+      onTap: () => context.pushToRegister(),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 20),
         padding: const EdgeInsets.all(15),
