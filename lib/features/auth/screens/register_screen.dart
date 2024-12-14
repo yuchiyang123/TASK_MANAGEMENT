@@ -5,7 +5,6 @@ import 'package:task_management/core/routes/app_route.dart';
 import 'package:task_management/features/auth/states/auth_state.dart';
 import 'package:task_management/features/auth/states/register_state.dart';
 import 'package:task_management/features/auth/widgets/bezierContainer.dart';
-import 'package:task_management/features/auth/screens/login_screen.dart';
 import 'package:task_management/shared/models/users.dart';
 import 'package:task_management/features/auth/Exception/auth_exception.dart';
 import 'package:task_management/shared/widgets/error_dialog.dart';
