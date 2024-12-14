@@ -112,8 +112,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
               // 先關閉 loading，再處理結果
               await loadingController.hide(context);
-              await handleLogin(
+              final isLoggin = await handleLogin(
                   mounted, results, authService, logger, loadingController);
+              if (isLoggin) {
+                context.pushToHome();
+              }
             } on AuthException catch (e) {
               // 確保他生命週期過了狀態不會一直存在
               if (!mounted) return;
@@ -336,7 +339,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 
-Future<void> handleLogin(
+Future<bool> handleLogin(
     context, results, authService, logger, loadingController) async {
   try {
     // 檢查登入結果
@@ -345,7 +348,7 @@ Future<void> handleLogin(
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('登入失敗，請檢查帳號密碼')),
       );
-      return;
+      return false;
     }
 
     // 登入成功，處理 token
@@ -354,13 +357,12 @@ Future<void> handleLogin(
 
     await authService.setJWToken(accessToken, refreshToken);
     logger.t('登入成功');
+    return true;
   } catch (error) {
     // 錯誤處理
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('發生錯誤：${error.toString()}')),
     );
-  } finally {
-    // 確保一定會關閉 loading
-    loadingController.hide(context);
+    return false;
   }
 }

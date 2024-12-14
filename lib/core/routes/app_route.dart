@@ -7,6 +7,8 @@ import 'package:task_management/features/auth/screens/register_screen.dart';
 import 'package:task_management/features/error/screen/error_screen.dart';
 import 'package:task_management/features/auth/states/auth_state.dart';
 
+import '../../features/home/screens/home_screen.dart';
+
 // 路由名稱定義
 class RouteName {
   RouteName._();
@@ -43,6 +45,7 @@ class AppRouter {
     final publicRoutes = [
       RouteName.auth.login,
       RouteName.auth.register,
+      //RouteName.main.home
     ];
 
     // 如果是公開路由，直接返回對應頁面
@@ -100,8 +103,8 @@ class AppRouter {
         return const LoginPage();
       case '/auth/register':
         return const RegisterPage();
-      // case '/':
-      //   return const HomePage();
+      case '/':
+        return const HomePage();
       default:
         return ErrorPage(routeName: settings.name);
     }
