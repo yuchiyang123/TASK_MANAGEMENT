@@ -30,6 +30,19 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_lints: ^4.0.0
+  sqflite: ^2.4.1 
+  shared_preferences: ^2.3.3  # 儲存小型資料
+  mysql1: ^0.20.0             # mysql
+  bcrypt: ^1.1.3              # Hash 密碼加解密
+  jwt_decoder: ^2.0.1         # jwt
+  dart_jsonwebtoken: ^2.14.1  # jwt
+  email_validator: ^3.0.0     # email 驗證
+  google_fonts: ^6.2.1        # google 字體
+  flutter_riverpod: ^2.6.1    # 依賴注入
+  logger: ^2.5.0              # log 套件
+  loading_indicator: ^3.1.1   # loading 動畫
+  riverpod: ^2.6.1 
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -46,19 +59,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
-  sqflite: ^2.4.1 
-  shared_preferences: ^2.3.3  # 儲存小型資料
-  mysql1: ^0.20.0             # mysql
-  bcrypt: ^1.1.3              # Hash 密碼加解密
-  jwt_decoder: ^2.0.1         # jwt
-  dart_jsonwebtoken: ^2.14.1  # jwt
-  email_validator: ^3.0.0     # email 驗證
-  google_fonts: ^6.2.1        # google 字體
-  flutter_riverpod: ^2.6.1    # 依賴注入
-  logger: ^2.5.0              # log 套件
-  loading_indicator: ^3.1.1   # loading 動畫
-  riverpod: ^2.6.1 
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
