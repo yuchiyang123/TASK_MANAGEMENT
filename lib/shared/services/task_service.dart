@@ -25,6 +25,7 @@ class TaskService {
 
   TaskService(this._db);
 
+  /// 新增任務
   Future<Task> insertTask(Task task) async {
     try {
       if (task.title.isEmpty) {
@@ -141,6 +142,7 @@ class TaskService {
     }
   }
 
+  /// 修改任務
   Future<Task> updateTask(Task task) async {
     try {
       if (task.title.isEmpty) {
@@ -207,7 +209,7 @@ class TaskService {
         updatedAt: DateTime.now(),
       );
 
-      final result = await _db.query('''
+      await _db.query('''
         UPDATE tasks 
         SET 
           title = ?,
@@ -262,6 +264,62 @@ class TaskService {
     } catch (e) {
       await _db.query('ROLLBACK');
       logger.w('id為${task.id}，插入資料錯誤錯誤碼：$e');
+      rethrow;
+    }
+  }
+
+  /// 刪除任務
+  Future<Task> deleteTask(Task task) async {
+    try {
+      // 開始交易
+      await _db.query('START TRANSACTION');
+
+      final taskExeit =
+          await _db.query('SELECT * FROM tasks where id = ?', [task.id]);
+
+      if (taskExeit.isEmpty) {
+        throw const TaskException(
+          message: '找不到指定的任務',
+          code: TaskErrorCodes.TASK_NOT_FOUND,
+        );
+      }
+
+      final taskToUpdate = task.copyWith(
+        updatedAt: DateTime.now(),
+      );
+
+      await _db.query('UPDATE tasks SET isDeleted = ? WEHRE = ?', [1, task.id]);
+
+      await _db.query('COMMIT');
+
+      return taskToUpdate;
+    } catch (e) {
+      await _db.query('ROLLBACK');
+
+      logger.w('id為${task.id}，刪除資料錯誤錯誤碼：$e');
+
+      rethrow;
+    }
+  }
+
+  /// 使用任務id去查詢
+  Future<Task> getTaskById(Task task) async {
+    try {
+      final result =
+          await _db.query('SELECT * FROM tasks WHERE id = ?', [task.id]);
+
+      if (result.isEmpty) {
+        throw const TaskException(
+          message: '找不到指定的任務',
+          code: TaskErrorCodes.TASK_NOT_FOUND,
+        );
+      }
+
+      final taskMap = result.first.fields;
+      return Task.fromMap(taskMap);
+    } catch (e) {
+      logger.w('id為${task.id}，查詢資料錯誤錯誤碼：$e');
+
       rethrow;
     }
   }
