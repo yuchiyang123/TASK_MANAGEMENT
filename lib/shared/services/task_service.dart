@@ -268,6 +268,64 @@ class TaskService {
     }
   }
 
+  /// 修改特定id的狀態
+  Future<bool> updateTaskStatus(int id, int status) async {
+    try {
+      final findTaskById = await _db.query(
+        'SELECT * FROM tasks WHERE id = ? AND is_deleted = ?',
+        [id, 0],
+      );
+
+      if (findTaskById.isEmpty) {
+        throw const TaskException(
+            message: '找不到任務', code: TaskErrorCodes.TASK_NOT_FOUND);
+      }
+
+      // 開始交易
+      await _db.query('START TRANSACTION');
+
+      await _db.query(
+        'UPDATE tasks SET status = ? ,updated_at = ? WHERE id = ?',
+        [status, DateTime.now(), id],
+      );
+
+      await _db.query('COMMIT');
+      return true;
+    } catch (e) {
+      logger.w('修改指定ID任務的狀態錯誤，修改任務ID$id，狀態$status，錯誤代碼：$e');
+      rethrow;
+    }
+  }
+
+  /// 修改特定id的進度
+  Future<bool> updateTaskProgress(int id, int progress) async {
+    try {
+      final findTaskById = await _db.query(
+        'SELECT * FROM tasks WHERE id = ? AND is_deleted = ?',
+        [id, 0],
+      );
+
+      if (findTaskById.isEmpty) {
+        throw const TaskException(
+            message: '找不到任務', code: TaskErrorCodes.TASK_NOT_FOUND);
+      }
+
+      // 開始交易
+      await _db.query('START TRANSACTION');
+
+      await _db.query(
+        'UPDATE tasks SET progress = ? ,updated_at = ? WHERE id = ?',
+        [progress, DateTime.now(), id],
+      );
+
+      await _db.query('COMMIT');
+      return true;
+    } catch (e) {
+      logger.w('修改指定ID任務的進度錯誤，修改任務ID$id，進度$progress，錯誤代碼：$e');
+      rethrow;
+    }
+  }
+
   /// 刪除任務
   Future<Task> deleteTask(Task task) async {
     try {
@@ -323,11 +381,11 @@ class TaskService {
     }
   }
 
-  /// 查詢用戶的所有任務
+  /// 查詢用戶的所有創建的任務
   Future<List<Task>> getTaskByUser(int creatorId) async {
     try {
       final results = await _db.query(
-          'SELECT * FROM tasks WHERE creator_id = ? AND isDeleted =?',
+          'SELECT * FROM tasks WHERE creator_id = ? AND is_deleted =?',
           [creatorId, 0]);
       if (results.isEmpty) {
         throw const TaskException(
@@ -346,7 +404,7 @@ class TaskService {
   Future<List<Task>> getTaskByAssigneeId(int assigneeId) async {
     try {
       final results = await _db.query(
-          'SELECT * FROM tasks WHERE assignee_id = ? AND isDeleted =?',
+          'SELECT * FROM tasks WHERE assignee_id = ? AND is_deleted =?',
           [assigneeId, 0]);
       if (results.isEmpty) {
         throw const TaskException(
@@ -357,25 +415,6 @@ class TaskService {
       return results.map((row) => Task.fromMap(row.fields)).toList();
     } catch (e) {
       logger.w('查詢多筆資料錯誤，查詢用戶ID$assigneeId，錯誤代碼$e');
-      rethrow;
-    }
-  }
-
-  /// 塞選用戶的指定重要性所有任務
-  Future<List<Task>> getTaskByPriority(int priority) async {
-    try {
-      final results = await _db.query(
-          'SELECT * FROM tasks WHERE priority = ? AND isDeleted =?',
-          [priority, 0]);
-      if (results.isEmpty) {
-        throw const TaskException(
-          message: '找不到指定的任務',
-          code: TaskErrorCodes.TASK_NOT_FOUND,
-        );
-      }
-      return results.map((row) => Task.fromMap(row.fields)).toList();
-    } catch (e) {
-      logger.w('查詢多筆資料錯誤，複雜度$priority，錯誤代碼：$e');
       rethrow;
     }
   }

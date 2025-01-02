@@ -70,7 +70,7 @@ class _HomePageState extends State<HomePage> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: switch (index) {
-                        0 => [Colors.blue.shade300, Colors.blue.shade400],
+                        0 => [Colors.blue.shade600, Colors.blue.shade400],
                         1 => [Colors.green.shade300, Colors.green.shade400],
                         2 => [Colors.amber.shade300, Colors.amber.shade400],
                         _ => [Colors.grey.shade300, Colors.grey.shade400]
